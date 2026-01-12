@@ -16,7 +16,7 @@ WORKDIR /usr/src/app
 COPY --from=build_image /usr/src/app/package.json ./package.json
 COPY --from=build_image /usr/src/app/node_modules ./node_modules
 COPY --from=build_image /usr/src/app/.next  ./.next
-COPY --from=build_image /usr/src/app/dist  ./dist
+#COPY --from=build_image /usr/src/app/dist  ./dist
 COPY --from=build_image /usr/src/app/public ./public
  
 EXPOSE 3000
