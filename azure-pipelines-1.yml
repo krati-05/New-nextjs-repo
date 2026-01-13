@@ -55,12 +55,12 @@ stages:
         yarn build
       displayName: "Yarn Build"
 
-    - task: ReportGenerator@5
-      displayName: "ReportGenerator"
-      inputs:
-        reports: '**/coverage.cobertura.xml'
-        targetdir: '$(Build.SourcesDirectory)/coverage-report'
-        reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
+#    - task: ReportGenerator@5
+ #     displayName: "ReportGenerator"
+  #    inputs:
+   #     reports: '**/coverage.cobertura.xml'
+    #    targetdir: '$(Build.SourcesDirectory)/coverage-report'
+     #   reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
 
 
 # -------------------------------
