@@ -14,21 +14,48 @@ variables:
 
 stages:
 
-# -------------------------------
-# Stage 1: Cleanup
-# -------------------------------
-- stage: Cleanup
-  displayName: "Cleanup Docker Cache"
+# Stage 1: Generate Code Coverage
+
+- stage: CodeCoverage
+  displayName: "Generate Code Coverage"
   jobs:
-  - job: CleanupJob
-    displayName: "Clean Docker resources"
+  - job: CodeCoverageJob
+    displayName: "Generate Code Coverage and list directories"
     pool:
       vmImage: ubuntu-latest
     steps:
     - script: |
-        docker system prune -af
-        docker volume prune -f
-      displayName: "Clean Docker cache"
+        echo "Listing files in Sources Directory"
+        ls -la $(Build.SourcesDirectory)
+      displayName: "List files in SourcesDirectory"
+
+    - script: |
+        echo "Build ID: $(Build.BuildId)"
+      displayName: "Get Build ID"
+
+    - script: |
+        npm install -g yarn
+        yarn --version
+      displayName: "Yarn Install Global"
+
+    - script: |
+        yarn install
+      displayName: "Install packages"
+
+    - script: |
+        yarn test --coverage
+      displayName: "Yarn Test"
+
+    - script: |
+        yarn build
+      displayName: "Yarn Build"
+
+    - task: ReportGenerator@5
+      displayName: "ReportGenerator"
+      inputs:
+        reports: '**/coverage.cobertura.xml'
+        targetdir: '$(Build.SourcesDirectory)/coverage-report'
+        reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
 
 
 # -------------------------------
@@ -36,7 +63,7 @@ stages:
 # -------------------------------
 - stage: BuildAndPush
   displayName: "Build & Push Docker Image"
-  dependsOn: Cleanup
+  dependsOn: CodeCoverage
   jobs:
   - job: BuildPushJob
     displayName: "Docker Build & Push"
