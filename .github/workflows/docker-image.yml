@@ -3,7 +3,9 @@ name: Docker Image CI
 on:
   push:
     branches: [ "master" ]
-
+permissions:
+  id-token: write
+  contents: read
 jobs:
   build:
     runs-on: ubuntu-latest
