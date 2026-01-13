@@ -32,6 +32,5 @@ jobs:
         run: |
           IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/nextjs_from_github
           TAG=${{ github.run_number }}
-
-          docker push $IMAGE:latest
+          
           docker push $IMAGE:$TAG
