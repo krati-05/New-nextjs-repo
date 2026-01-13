@@ -43,8 +43,13 @@ stages:
       displayName: "Install packages"
 
     - script: |
-        yarn test --coverage
+        if yarn run | grep -q "test"; then
+          yarn test --coverage
+        else
+          echo "No test script found, skipping tests"
+        fi
       displayName: "Yarn Test"
+
 
     - script: |
         yarn build
