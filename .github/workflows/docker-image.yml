@@ -3,8 +3,6 @@ name: Docker Image CI
 on:
   push:
     branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
 
 jobs:
   build:
@@ -27,10 +25,29 @@ jobs:
 
           docker build -t $IMAGE:latest -t $IMAGE:$TAG .
 
-
       - name: Push Docker image
         run: |
           IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/nextjs_from_github
           TAG=${{ github.run_number }}
-          
+
+          docker push $IMAGE:latest
           docker push $IMAGE:$TAG
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          images: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/nextjs_from_github:${{ github.run_number }}
