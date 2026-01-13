@@ -1,0 +1,85 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+variables:
+  dockerRegistryServiceConnection: 'DockerHub'
+  imageRepository: 'userkrati05/nextjs_app'
+  dockerfilePath: '**/Dockerfile'
+  tag: '$(Build.BuildId)'
+
+stages:
+
+# Stage 1: Generate Code Coverage
+
+- stage: CodeCoverage
+  displayName: "Generate Code Coverage"
+  jobs:
+  - job: CodeCoverageJob
+    displayName: "Generate Code Coverage and list directories"
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - script: |
+        echo "Listing files in Sources Directory"
+        ls -la $(Build.SourcesDirectory)
+      displayName: "List files in SourcesDirectory"
+
+    - script: |
+        echo "Build ID: $(Build.BuildId)"
+      displayName: "Get Build ID"
+
+    - script: |
+        npm install -g yarn
+        yarn --version
+      displayName: "Yarn Install Global"
+
+    - script: |
+        yarn install
+      displayName: "Install packages"
+
+    - script: |
+        if yarn run | grep -q "test"; then
+          yarn test --coverage
+        else
+          echo "No test script found, skipping tests"
+        fi
+      displayName: "Yarn Test"
+
+
+    - script: |
+        yarn build
+      displayName: "Yarn Build"
+
+#    - task: ReportGenerator@5
+ #     displayName: "ReportGenerator"
+  #    inputs:
+   #     reports: '**/coverage.cobertura.xml'
+    #    targetdir: '$(Build.SourcesDirectory)/coverage-report'
+     #   reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
+
+
+# -------------------------------
+# Stage 2: Build & Push Image
+# -------------------------------
+- stage: BuildAndPush
+  displayName: "Build & Push Docker Image"
+  dependsOn: CodeCoverage
+  jobs:
+  - job: BuildPushJob
+    displayName: "Docker Build & Push"
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      displayName: "Build and Push Image"
+      inputs:
+        containerRegistry: $(dockerRegistryServiceConnection)
+        repository: $(imageRepository)
+        command: buildAndPush
+        Dockerfile: $(dockerfilePath)
+        tags: $(tag)
