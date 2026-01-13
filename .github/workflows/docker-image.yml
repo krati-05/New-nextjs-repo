@@ -27,6 +27,7 @@ jobs:
 
           docker build -t $IMAGE:latest -t $IMAGE:$TAG .
 
+
       - name: Push Docker image
         run: |
           IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/nextjs_from_github
