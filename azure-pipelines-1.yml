@@ -1,0 +1,53 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+variables:
+  dockerRegistryServiceConnection: 'DockerHub'
+  imageRepository: 'userkrati05/nextjs_app'
+  dockerfilePath: '**/Dockerfile'
+  tag: '$(Build.BuildId)'
+
+stages:
+
+# -------------------------------
+# Stage 1: Cleanup
+# -------------------------------
+- stage: Cleanup
+  displayName: "Cleanup Docker Cache"
+  jobs:
+  - job: CleanupJob
+    displayName: "Clean Docker resources"
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - script: |
+        docker system prune -af
+        docker volume prune -f
+      displayName: "Clean Docker cache"
+
+
+# -------------------------------
+# Stage 2: Build & Push Image
+# -------------------------------
+- stage: BuildAndPush
+  displayName: "Build & Push Docker Image"
+  dependsOn: Cleanup
+  jobs:
+  - job: BuildPushJob
+    displayName: "Docker Build & Push"
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      displayName: "Build and Push Image"
+      inputs:
+        containerRegistry: $(dockerRegistryServiceConnection)
+        repository: $(imageRepository)
+        command: buildAndPush
+        Dockerfile: $(dockerfilePath)
+        tags: $(tag)
